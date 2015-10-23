@@ -1,6 +1,6 @@
 # midi  test, plays a tone of all available sound profiles
 #
-
+# hi!
 import time
 import rtmidi_python as rtmidi
 
@@ -19,8 +19,8 @@ else:
 
 time.sleep(0.1)
 #program_change = [0xC0, 51]
-#midiout.send_message(program_change) 
-note_on = [0x90, 60, 127] # channel 1, middle C, velocity 112	
+#midiout.send_message(program_change)
+note_on = [0x90, 60, 127] # channel 1, middle C, velocity 112
 #note_abkling = [0xE0, 0, 127]
 note_off = [0x80, 60, 50]
 midiout.send_message(note_on)
@@ -57,7 +57,7 @@ tt=Hoechster Wert
 for i in range(256):
 	print i
 	program_change = [0xC0, i]
-	midiout.send_message(program_change) 
+	midiout.send_message(program_change)
 	#midiout.send_message(note_on)
 	midiout.send_message(note_on)
 	time.sleep(1)
