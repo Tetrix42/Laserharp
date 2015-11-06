@@ -5,8 +5,12 @@ import time
 import rtmidi_python as rtmidi
 
 
-#midiout = rtmidi.MidiOut()
+
+
+midiout = rtmidi.MidiOut()
 #available_ports = midiout.ports()
+for portname in midiout.ports:
+    print portname
 
 #~ if available_ports:
     #~ midiout.open_port(0)

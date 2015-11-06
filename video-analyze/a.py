@@ -33,15 +33,27 @@ while(True):
 	#scipy.misc.imsave("r.png", frame[:,:,2]);
 	#scipy.misc.imsave("bgr.png", frame);  # gives wrong colors, because false sorted BGR interpreted as RGB
 	# Display the resulting frame
-	cv2.imshow('frame',rot)
+	
+	rs = rot[100,:]
+	cv2.imshow('frame',rs)
 	sp = [0,0]
 	dim = rot.shape
-	for x in xrange(dim[0]):
-		for y in xrange(dim[1]):
-			sp[0] += x*rot[x,y] / dim[0]
-			sp[1] += y*rot[x,y] / dim[1]
+	#print(rs.shape)
+	#rs[:] = 0
+	#rs[30] = 100
+	#print(rs)
+	
+	for x in xrange(rs.shape[0]):
+		#for y in xrange(dim[1]):
+			#sp[0] += x*rot[x,y]
+			sp[0] += x*rs[x]
+			#sp[1] += y*rot[x,y] / dim[1]
 			pass
-	#print(rot)
+	mass = sum( rot[100,:])
+	
+	#print(mass, sp)
+	#print(sp)
+	sp[0] = sp[0]/ mass
 	print(sp)
 	
 	if cv2.waitKey(1) & 0xFF == ord('q'):
