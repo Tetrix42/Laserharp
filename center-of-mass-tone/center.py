@@ -64,7 +64,7 @@ while(True):
 	#scipy.misc.imsave("bgr.png", frame);  # gives wrong colors, because false sorted BGR interpreted as RGB
 	# Display the resulting frame
 	
-	rs = rot[100,:]
+	rs = rot[180:200,:]
 	cv2.imshow('frame',rs)
 	sp = [0,0]
 	dim = rot.shape
@@ -73,22 +73,32 @@ while(True):
 	#rs[30] = 100
 	#print(rs)
 	
-	for x in xrange(rs.shape[0]):
-		#for y in xrange(dim[1]):
-			#sp[0] += x*rot[x,y]
-			sp[0] += x*rs[x]
-			#sp[1] += y*rot[x,y] / dim[1]
-			pass
-	mass = sum( rot[100,:])
+	#~ for x in xrange(rs.shape[0]):
+		#~ #for y in xrange(dim[1]):
+			#~ #sp[0] += x*rot[x,y]
+			#~ sp[0] += x*rs[x]
+			#~ #sp[1] += y*rot[x,y] / dim[1]
+			#~ pass
+	#~ mass = sum( rot[100,:])
+	
+	#print(sp)
+	#print np.where(rs*1.05 >= np.max(rs)) # where is the image maximum 5% darker than max
+	high = np.where(rs*1.05 >= np.max(rs)) # where is the image maximum 5% darker than max
+	
+	for y in high[1]: #y
+		sp += y
+		
+	sp/=high[1].shape[0]
+	
 
 	#print(mass, sp)
 	#print(sp)
-	sp[0] = sp[0]/ mass
-	print(sp)
-	print(sp[0]/5)
+	#sp[0] = sp[0]/ mass
+	print(sp, sp[0]/5)
 	midiout.send_message([0x80, sp_old, 10])
 	end = time.clock()
-	print "%.2gs" % (end-start)
+	print "%.2f Hz" % (1./(end-start))
+	print "%.2f s" % (end-start)
 	start = time.clock()
 	midiout.send_message([0x90, sp[0]/5, 127])
 	sp_old = sp[0]/5;
