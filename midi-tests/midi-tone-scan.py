@@ -36,21 +36,21 @@ midiout.send_message(note_off)
 time.sleep(1)
 
 """
-8x 	1000xxxx 	nn vv 	Note aus
+0x8[0-F] 	1000xxxx 	nn vv 	Note aus
 nn=Noten-Nummer
 vv=Geschwindigkeit
-9x 	1001xxxx 	nn vv 	Note an
+0x9[0-F] 	1001xxxx 	nn vv 	Note an
 nn=Noten-Nummer
 vv=Geschwindigkeit
-Ax 	1010xxxx 	nn vv 	Noten-Abklingen
+A[0-F] 	1010xxxx 	nn vv 	Noten-Abklingen
 nn=Note
 vv=Geschwindikkeit
-Bx 	1011xxxx 	cc vv 	Kontrollaenderung
+B[0-F] 	1011xxxx 	cc vv 	Kontrollaenderung
 cc=Kontrollnummer
 vv=Neuer Wert
-Cx 	1101xxxx 	cc 	Kanalausklang
+C[0-F] 	1101xxxx 	cc 	Kanalausklang
 cc=Kanalnummer
-Ex 	1110xxxx 	bb tt 	Tonhoehenaenderung
+E[0-F] 	1110xxxx 	bb tt 	Tonhoehenaenderung
 bb=Boden
 tt=Hoechster Wert
 """
