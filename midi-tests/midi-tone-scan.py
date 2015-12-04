@@ -20,7 +20,7 @@ else:
 time.sleep(0.1)
 #program_change = [0xC0, 51]
 #midiout.send_message(program_change)
-note_on = [0x90, 60, 127] # channel 1, middle C, velocity 112
+note_on = [0x90, 60, 127] # channel 1, middle C, velocity 127
 #note_abkling = [0xE0, 0, 127]
 note_off = [0x80, 60, 50]
 midiout.send_message(note_on)
@@ -36,23 +36,24 @@ midiout.send_message(note_off)
 time.sleep(1)
 
 """
+Hex			BIN			
 0x8[0-F] 	1000xxxx 	nn vv 	Note aus
-nn=Noten-Nummer
-vv=Geschwindigkeit
+	nn=Noten-Nummer
+	vv=Geschwindigkeit
 0x9[0-F] 	1001xxxx 	nn vv 	Note an
-nn=Noten-Nummer
-vv=Geschwindigkeit
-A[0-F] 	1010xxxx 	nn vv 	Noten-Abklingen
-nn=Note
-vv=Geschwindikkeit
-B[0-F] 	1011xxxx 	cc vv 	Kontrollaenderung
-cc=Kontrollnummer
-vv=Neuer Wert
-C[0-F] 	1101xxxx 	cc 	Kanalausklang
-cc=Kanalnummer
-E[0-F] 	1110xxxx 	bb tt 	Tonhoehenaenderung
-bb=Boden
-tt=Hoechster Wert
+	nn=Noten-Nummer
+	vv=Geschwindigkeit
+0xA[0-F] 	1010xxxx 	nn vv 	Noten-Abklingen
+	nn=Note
+	vv=Geschwindikkeit
+0xB[0-F] 	1011xxxx 	cc vv 	Kontrollaenderung
+	cc=Kontrollnummer
+	vv=Neuer Wert
+0xC[0-F] 	1101xxxx 	cc 	Kanalausklang
+	cc=Kanalnummer
+0xEx[0-F] 	1110xxxx 	bb tt 	Tonhoehenaenderung
+	bb=Boden
+	tt=Hoechster Wert
 """
 for i in range(256):
 	print i
