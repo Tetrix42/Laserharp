@@ -24,9 +24,9 @@ else:
 
 time.sleep(0.1)
 program_change = [0xC0, 19]
-midiout.send_message(program_change) 
+midiout.send_message(program_change)
 
-note_on = [0x90, 60, 127] # channel 1, middle C, velocity 112	
+note_on = [0x90, 60, 127] # channel 1, middle C, velocity 112
 note_off = [0x80, 60, 50]
 midiout.send_message(note_on)
 print "on"
@@ -54,17 +54,17 @@ while(True):
 	# Our operations on the frame come here
 	#gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 	print(frame.shape)
-	
+
 	rot = frame[:,:,2]	# image is sorted BGR
-	
-	
+
+
 	#scipy.misc.imsave("b.png", frame[:,:,0]);
 	#scipy.misc.imsave("g.png", frame[:,:,1]);
 	#scipy.misc.imsave("r.png", frame[:,:,2]);
 	#scipy.misc.imsave("bgr.png", frame);  # gives wrong colors, because false sorted BGR interpreted as RGB
 	# Display the resulting frame
-	
-	rs = rot[180:200,:]
+
+	rs = rot[180:320,:]
 	cv2.imshow('frame',rs)
 	sp = [0,0]
 	dim = rot.shape
@@ -72,7 +72,7 @@ while(True):
 	#rs[:] = 0
 	#rs[30] = 100
 	#print(rs)
-	
+
 	#~ for x in xrange(rs.shape[0]):
 		#~ #for y in xrange(dim[1]):
 			#~ #sp[0] += x*rot[x,y]
@@ -80,21 +80,21 @@ while(True):
 			#~ #sp[1] += y*rot[x,y] / dim[1]
 			#~ pass
 	#~ mass = sum( rot[100,:])
-	
+
 	#print(sp)
 	#print np.where(rs*1.05 >= np.max(rs)) # where is the image maximum 5% darker than max
 	high = np.where(rs*1.05 >= np.max(rs)) # where is the image maximum 5% darker than max
-	
+
 	for y in high[1]: #y
 		sp += y
-		
+
 	sp/=high[1].shape[0]
-	
+
 
 	#print(mass, sp)
 	#print(sp)
 	#sp[0] = sp[0]/ mass
-	print(sp, sp[0]/5)
+        print("Note/5: ",sp[0]/5)
 	midiout.send_message([0x80, sp_old, 10])
 	end = time.clock()
 	print "%.2f Hz" % (1./(end-start))
@@ -102,8 +102,8 @@ while(True):
 	start = time.clock()
 	midiout.send_message([0x90, sp[0]/5, 127])
 	sp_old = sp[0]/5;
-	
-	
+
+
 	if cv2.waitKey(1) & 0xFF == ord('q'):
 		break
 
