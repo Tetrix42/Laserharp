@@ -36,24 +36,24 @@ midiout.send_message(note_off)
 time.sleep(1)
 
 """
-Hex	BIN			
-8[0-F] 	1000xxxx 	nn vv 	Note aus
+Hex			BIN			
+0x8[0-F] 	1000xxxx 	nn vv 	Note aus
 	nn=Noten-Nummer
 	vv=Geschwindigkeit
-9x 	1001xxxx 	nn vv 	Note an
+0x9[0-F] 	1001xxxx 	nn vv 	Note an
 	nn=Noten-Nummer
 	vv=Geschwindigkeit
-Ax 	1010xxxx 	nn vv 	Noten-Abklingen
+0xA[0-F] 	1010xxxx 	nn vv 	Noten-Abklingen
 	nn=Note
 	vv=Geschwindikkeit
-Bx 	1011xxxx 	cc vv 	Kontrollaenderung
+0xB[0-F] 	1011xxxx 	cc vv 	Kontrollaenderung
 	cc=Kontrollnummer
 	vv=Neuer Wert
-Cx 	1101xxxx 	cc 	Kanalausklang
+0xC[0-F] 	1101xxxx 	cc 	Kanalausklang
 	cc=Kanalnummer
-Ex 	1110xxxx 	bb tt 	Tonhoehenaenderung
+0xEx[0-F] 	1110xxxx 	bb tt 	Tonhoehenaenderung
 	bb=Boden
-tt=Hoechster Wert
+	tt=Hoechster Wert
 """
 for i in range(256):
 	print i
