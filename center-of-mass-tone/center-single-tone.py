@@ -88,8 +88,9 @@ while(True):
 	#print np.where(rs*1.05 >= np.max(rs)) # where is the image maximum 5% darker than max
 	high = np.where(rs*1.05 >= np.max(rs)) # where is the image maximum 5% darker than max
 	on = 0;
-	if np.where(rs > 200):
+	if np.where(rs > 220):
 		on = 1
+		print np.where(rs >220)
 	print on
 	#print high
 	
@@ -102,7 +103,8 @@ while(True):
 	#print(mass, sp)
 	#print(sp)
 	#sp[0] = sp[0]/ mass
-	tone = sp[0]/5 + 40
+	tone = sp[0]*(87./640.)+40
+#	tone = sp[0]/5 + 40
 	print(sp, tone)
 	midiout.send_message([0x80, tone_old, 10])
 	end = time.clock()
