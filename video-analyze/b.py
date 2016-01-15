@@ -54,7 +54,7 @@ def get_laser_points(image):
 
 
 
-
+bgs = cv2.BackgroundSubtractorMOG2()
 
 
 bild = cv2.imread("../material/hibaby.jpg")
@@ -64,13 +64,16 @@ green = bild [:,:,1]
 blue = bild  [:,:,0]
 
 
+#bild = cv2.GaussianBlur(bild, (11,11),0 )
+fgmask = bgs.apply(bild)
 
-cv2.imshow('frame',bild)
+bild = cv2.bitwise_and(bild,bild,mask=fgmask)
+
+cv2.imshow('frame',fgmask)
 print "red"
 while(1):
 	if cv2.waitKey(1) & 0xFF == ord('q'):
 		break
-
 
 
 
@@ -81,17 +84,25 @@ while(1):
 			#~ #print x,y
 			#~ bild[x,y] = 0
 
-whiteLower = (190, 190, 220)
+whiteLower = (190, 190, 190)
 whiteUpper = (255, 255, 255)
 candidates = cv2.inRange(bild, whiteLower, whiteUpper)
 
 print candidates
 
 laser = np.zeros((bild.shape[0], bild.shape[1]))
-coords = get_laser_points(bild)
+#coords = get_laser_points(bild)
 
-for c in coords:
-	laser[c[1], c[0]] = 220
+#for c in candidates:
+#	laser[c[1], c[0]] = 220
+
+
+
+cv2.imshow('frame',candidates)
+print "candidates"
+while(1):
+	if cv2.waitKey(1) & 0xFF == ord('q'):
+		break
 
 
 #red = np.where(bild>100)
