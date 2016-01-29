@@ -15,88 +15,62 @@ import scipy.misc
 #print("sat:", cap.get(12))
 #print("rgp:", cap.get(16))
 
-def get_laser_points(image):
-    """Return centers of laser-points found in the given image as list of coordinate-tuples."""
-    # The color boarders for red laser (appears white on screen)
-    whiteLower = (190, 190, 220)
-    whiteUpper = (255, 255, 255)
-    # get the contour areas for the steppers
-    mask = cv2.inRange(image, whiteLower, whiteUpper)
 
-    cv2.imshow('frame', mask)
-    print "image with a with mask = display only bright region of picture"
+#First of all, we want to create a mask and display the subtracted background
+
+#bild = cv2.imread("../material/bild.jpg")
+
+cap = cv2.VideoCapture('output1.avi')
+while(cap.isOpened()):
+    ret, bild = cap.read()
+
+    red = bild   [:,:,2]
+    green = bild [:,:,1]
+    blue = bild  [:,:,0]
+
+    redWhiteLower = 230;
+    redWhiteUpper = 255;
+    red_candidates = cv2.inRange(red, redWhiteLower, redWhiteUpper)
+
+    cv2.imshow('frame',red_candidates)
+    print "red candidates for laser points = brightest section of red challenge"
     while(1):
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
 
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    # compute the center of the contour areas
-    centroids = []
-    for contour in contours:
-        m = cv2.moments(contour)
-        # avoid division by zero error!
-        if m['m00'] != 0:
-            cx = int(m['m10'] / m['m00'])
-            cy = int(m['m01'] / m['m00'])
-            centroids.append((cx, cy))
-            # following line manages sorting the found contours from left to right, sorting
-            # first tuple value (x coordinate) ascending
-            centroids = sorted(centroids)
-    centroids.apply(bild);
-    return centroids
+    img = bild
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    ret,gray = cv2.threshold(gray,127,255,0)
+    gray2 = gray.copy()
+    mask = np.zeros(gray.shape,np.uint8)
 
+    contours, hier = cv2.findContours(gray,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
+    for cnt in contours:
+        if 10 < cv2.contourArea(cnt) < 20:
+            cv2.drawContours(img,[cnt],0,(0,255,0),2)
+            cv2.drawContours(mask,[cnt],0,255,-1)
 
-
-
-def killnondots(img):
-    height, width, channels = img.shape
-    minimumBrightness = 230
-    for i in range(height):
-        for j in range(width):
-            if img[i,j] > minimumBrightness:
-                if j < width:
-                    if img[i,j+1] > minimumBrightness:
-                        if i < height:
-                            if img[i+1,j] > minimumBrightness:
-                                #do nothing
-
-#First of all, we read in the material
-
-bild = cv2.imread("../material/bild.jpg")
-bg = cv2.imread("bg.jpg")
-
-subtracted = bg - bild
-cv2.imshow('frame',subtracted)
-print "Subtraction of own background"
-while(1):
-	if cv2.waitKey(1) & 0xFF == ord('q'):
+    cv2.imshow('frame',mask)
+    print "mask"
+    while(1):
+            if cv2.waitKey(1) & 0xFF == ord('q'):
 		break
 
-red = bild   [:,:,2]
-green = bild [:,:,1]
-blue = bild  [:,:,0]
+    cv2.imshow('frame',img)
+    print "img"
+    while(1):
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
 
-redWhiteLower = 230;
-redWhiteUpper = 255;
-red_candidates = cv2.inRange(red, redWhiteLower, redWhiteUpper)
-
+"""
 cv2.imshow('frame',red_candidates)
 print "red candidates for laser points = brightest section of red challenge"
 while(1):
 	if cv2.waitKey(1) & 0xFF == ord('q'):
 		break
 
-red2 = subtracted[:,:,2]
 
-redWhiteLower = 230;
-redWhiteUpper = 255;
-red_candidates2 = cv2.inRange(red2, redWhiteLower, redWhiteUpper)
 
-cv2.imshow('frame',red_candidates2)
-print "red candidates for laser points - after first image subtraction"
-while(1):
-	if cv2.waitKey(1) & 0xFF == ord('q'):
-		break
 bgs = cv2.BackgroundSubtractorMOG()
 fgmask_red = bgs.apply(red)
 cv2.imshow('frame',fgmask_red)
@@ -123,6 +97,9 @@ print "red candidates for blurred picture"
 while(1):
 	if cv2.waitKey(1) & 0xFF == ord('q'):
 		break
+
+"""
+
 """
 print "green channel"
 cv2.imshow('frame',green)
