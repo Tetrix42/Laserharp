@@ -5,6 +5,8 @@ import time
 import cv2
 
 import scipy.misc
+import scipy.signal
+
 
 #cap = cv2.VideoCapture(0)	# 0 for /dev/video0; 1 for /dev/video1; or a filename.
 #print("dimension", cap.get(3), cap.get(4)) #http://docs.opencv.org/modules/highgui/doc/reading_and_writing_images_and_video.html#videocapture-get
@@ -47,13 +49,27 @@ def get_laser_points(image):
 
 
 
-
+def rotatechannels(image):
+	return (image[:,:,2], image[:,:,1], image[:,:,0])
 
 
 #First of all, we read in the material
 
 bild = cv2.imread("../material/bild.jpg")
 bg = cv2.imread("bg.jpg")
+
+
+
+
+
+mask = np.ones((bild.shape[0]+2, bild.shape[1]+2),np.uint8)
+cv2.floodFill(bild, mask, (1,1) ,0, 30, 30 );
+
+cv2.imshow('frame',mask)
+print "flood fill"
+while(1):
+	if cv2.waitKey(1) & 0xFF == ord('q'):
+		break
 
 subtracted = bg - bild
 cv2.imshow('frame',subtracted)
