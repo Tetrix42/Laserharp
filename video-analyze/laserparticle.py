@@ -5,7 +5,14 @@ import cv2
 import pylab
 from scipy import ndimage
 
-im = cv2.imread('bild.jpg')
+bild = cv2.imread("../material/bild.jpg")
+bg = cv2.imread("bg.jpg")
+
+im = bg - bild
+#cv2.imshow('frame',subtracted)
+#print "Subtraction of own background"
+
+#im = cv2.imread('bild.jpg')
 pylab.figure(0)
 pylab.imshow(im)
 
