@@ -4,7 +4,6 @@ import numpy as np
 import cv2
 import rtmidi_python as rtmidi
 import time
-
 import scipy.misc
 
 cap = cv2.VideoCapture(0)	# 0 for /dev/video0; 1 for /dev/video1; or a filename.

@@ -1,9 +1,9 @@
 # getting started https://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html
 
 import numpy as np
-import time
 import cv2
-
+import rtmidi_python as rtmidi
+import time
 import scipy.misc
 
 #cap = cv2.VideoCapture(0)	# 0 for /dev/video0; 1 for /dev/video1; or a filename.
@@ -15,18 +15,46 @@ import scipy.misc
 #print("sat:", cap.get(12))
 #print("rgp:", cap.get(16))
 
+#--------#
+#configure MIDI
+midiout = rtmidi.MidiOut()
+
+for port_name in midiout.ports:
+    print port_name
+
+if midiout.ports:
+#    midiout.open_virtual_port("My virtual output")
+    midiout.open_port(2)
+    print "openend port"
+else:
+    midiout.open_virtual_port("My virtual output")
+
+time.sleep(0.1)
+
+note_on = [0x90, 60, 127] # channel 1, middle C, velocity 112
+note_off = [0x80, 60, 50]
+midiout.send_message(note_on)
+print "on"
+time.sleep(1)
+print "off"
+midiout.send_message(note_off)
+print "did you hear a tone? there is a problem if you didn't."
+#--------#
 
 #First of all, we want to create a mask and display the subtracted background
 
 #bild = cv2.imread("../material/bild.jpg")
 
 cap = cv2.VideoCapture('output1.avi')
+ret1, bild1 = cap.read()
+height = bild1.shape[1]
+tone_old = 100;
 while(cap.isOpened()):
     ret, bild = cap.read()
 
     red = bild   [:,:,2]
-    green = bild [:,:,1]
-    blue = bild  [:,:,0]
+#    green = bild [:,:,1]
+#    blue = bild  [:,:,0]
 
     redWhiteLower = 230;
     redWhiteUpper = 255;
@@ -48,8 +76,19 @@ while(cap.isOpened()):
     for cnt in contours:
         if 10 < cv2.contourArea(cnt) < 20:
             cv2.drawContours(img,[cnt],0,(0,255,0),2)
+            print("Abstand vom oberen Bildschirmrand:")
+            distance_above = np.mean(cnt[1])
             cv2.drawContours(mask,[cnt],0,255,-1)
-
+            tone = np.round((height-distance_above)*255/height/3)
+            #(tones only have a scale from 0 to 255)
+            print(tone)
+            midiout.send_message([0x80, tone_old, 10])
+            #end = time.clock()
+            #print "%.2f Hz" % (1./(end-start))
+            #print "%.2f s" % (end-start)
+            #start = time.clock()
+            midiout.send_message([0x90, tone, 127])
+            tone_old = tone
     cv2.imshow('frame',mask)
     print "mask"
     while(1):
@@ -61,6 +100,10 @@ while(cap.isOpened()):
     while(1):
             if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
+
+# When everything done, release the capture
+cap.release()
+cv2.destroyAllWindows()
 
 """
 cv2.imshow('frame',red_candidates)
