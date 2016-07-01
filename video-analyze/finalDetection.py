@@ -96,6 +96,8 @@ def tone_update(tones):
 	
 	#tone_old = tone
 
+
+
 while(cap.isOpened()):
     ret, bild = cap.read()
 
