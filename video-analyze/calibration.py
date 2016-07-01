@@ -17,15 +17,35 @@ import math
 #print("sat:", cap.get(12))
 #print("rgp:", cap.get(16))
 
-#def drawCalibrationProgress(coord):
-#    coord = 1
-#    cv2.drawContours(img,[cnt],0,(255,0,0),2)
-#    cv2.drawContours(mask,[cnt],0,255,-1)
+lasernumber = 10
+
+def drawCalibrationProgress(allCoords):
+    #print allCoords
+
+    cap = cv2.VideoCapture(0) # 0 for /dev/video0; 1 for /dev/video1; or a filename.
+    ret, bild = cap.read()
+    for i in range(len(allCoords)):
+        coord11 = int(allCoords[i][0][0])
+        coord12 = int(allCoords[i][0][1])
+        coord21 = int(allCoords[i][1][0])
+        coord22 = int(allCoords[i][1][1])
+        #    cv2.drawContours(img,[cnt],0,(255,0,0),2)
+        #    cv2.drawContours(mask,[cnt],0,255,-1)
+        #print coord11,coord12
+        #print "und 2:"
+        #print coord21,coord22
+        #cv2.line(bild, (0,0),(511,511),(255,0,255),3)
+        cv2.line(bild, (coord11,coord12),(coord21,coord22),(255,185,15),3)
+    cv2.imshow('frame',bild)
+    print "All right, press 'AnyKey' if You are satisfied."
+    b = cv2.waitKey(0)
+    #b = chr(b) #get the letter from the number returned by waitKey
 
 def readInputUntilRecognition():
     #we want to create a mask and display the subtracted background
     #bild = cv2.imread("../material/bild.jpg")
-
+    m=0 #declaration for later maximum distance of detected point
+    positionOfElement = 0 #same thing
     #cap = cv2.VideoCapture('output1.avi')
     cap = cv2.VideoCapture(0) # 0 for /dev/video0; 1 for /dev/video1; or a filename.
     ret1, bild1 = cap.read()
@@ -41,7 +61,7 @@ def readInputUntilRecognition():
         gray2 = gray.copy()
         mask = np.zeros(gray.shape,np.uint8)
 
-        contours, hier = cv2.findContours(gray,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+        _, contours, hier = cv2.findContours(gray,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
         #if contours:
             #print len(contours[0])
         dis_array = []
@@ -68,11 +88,6 @@ def readInputUntilRecognition():
         dis_array_y = []
         for i in range(len(dis_array)):
             dis_array_y.append(dis_array[i][1])
-        #print "Array:"
-        #print dis_array
-        #print "Array of y"
-        #print dis_array_y
-        #print "size"
         #print len(dis_array)
         if len(dis_array)>1:
             m = max(dis_array_y) # lowest point (largest distance to top of screen)
@@ -103,13 +118,14 @@ def readInputUntilRecognition():
             #print detectedDot
             #cv2.drawContours(img,[detectedDot],0,(255,0,0),2) For cnt in countours etc... #to do next.
         else:
-            print "no points detected"
-        print 'Press "n" if you are satisfied, otherwise press "r" to repeat'
+            print "\nNo points detected! Please repeat with 'r'"
+        print '\nMake sure the blue dot is where the Laserpoint of your hand is. \n If this is not the case, You have to press "r" to REPEAT.\n Otherwise press "ENTER" if you are satisfied\n'
+        #print 'Press "n" if you are satisfied, otherwise press "r" to repeat'
         cv2.imshow('frame',img)
         #cv2.startWindowThread()
         b = cv2.waitKey(0)
         b = chr(b) #get the letter from the number returned by waitKey
-        #b = raw_input('Press "ENTER" if you are satisfied, otherwise press "r" to repeat\n')
+        #b = raw_input('Make sure the blue dot is where the Laserpoint of your hand is. \n If this is not the case or if no points were detected at all, You have to press "r" to REPEAT.\n Otherwise press "ENTER" if you are satisfied\n')
         if b != 'r':
             # When everything is done, release the capture
             break
@@ -122,6 +138,11 @@ def readInputUntilRecognition():
     cv2.waitKey(1)
     #print "should have worked"
     #cv2.destroyWindow('frame')
+    if dis_array:
+        #do nothing
+        dummy = 0
+    else:
+        dis_array.append(0)
     return dis_array[positionOfElement]
 
 #--------#
@@ -153,18 +174,43 @@ print "did you hear a tone? there is a problem if you didn't."
 #-- Calibration start -#
 
 print "Calibration started"
-print "\   \      |      /   /"
-print "(1) (3)   (5)   (7) (9)"
-print "  \   \    |    /   /  "
-print "  (2) (4) (6) (8) (10) "
-print "    \   \  |  /   /    "
-print "Please put your hand at position (1) "
-a = raw_input('and press ENTER, when you are done')
+allCoords = []
+number = 0
 
-coordinates1 = readInputUntilRecognition()
-coordinates2 = readInputUntilRecognition()
-draw_calibration_progress() #draw lines and stuff next TODO, nparray and lines for coordinates cv2
+for i in range(lasernumber):
+    number = number+1
+    print "\   \      |      /   /"
+    print "(1) (3)   (5)   (7) (9)"
+    print "  \   \    |    /   /  "
+    print "  (2) (4) (6) (8) (10) "
+    print "    \   \  |  /   /    "
+    print "Please put your hand at position ("+str(number)+")"
+    if i==0:
+        ak = raw_input('and press ENTER when you are done')
+    else:
+        print "and press 'n', when you are done"
+    anyKey = cv2.waitKey(0)
+    cor1 = readInputUntilRecognition()
+    number = number+1
+    print "Now please put your hand at position ("+str(number)+")"
+    cor2 = readInputUntilRecognition()
 
-#print coordinates
+    allCoords.append([cor1,cor2])
+    drawCalibrationProgress(allCoords) #draw lines and stuff next TODO, nparray and lines for coordinates cv2
+
+
+
+
 
 a = raw_input('You made it!')
+
+
+
+
+
+
+
+
+
+
+

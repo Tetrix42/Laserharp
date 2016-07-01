@@ -72,7 +72,8 @@ while(cap.isOpened()):
     gray2 = gray.copy()
     mask = np.zeros(gray.shape,np.uint8)
 
-    contours, hier = cv2.findContours(gray,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
+    #contours, hier = cv2.findContours(gray,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
+    _, contours, hier = cv2.findContours(gray,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
     for cnt in contours:
         if 10 < cv2.contourArea(cnt) < 20:
             cv2.drawContours(img,[cnt],0,(0,255,0),2)
