@@ -20,8 +20,10 @@ import sys
 
 lasernumber = 2
 tone_old = 100
+tonhoehe_alt = 62
 device = 1
 dummy = 0
+instrument = 62
 
 cap = cv2.VideoCapture(device) # 0 for /dev/video0; 1 for /dev/video1; or a filename.
 ret, bild = cap.read()
@@ -102,7 +104,7 @@ def drawDistanceToNearestLine(allCoords,cor):
     #print "\nMinimum: "+str(min(disray))
     #print "\nOk, press 'AnyKey' to go on.\nPress 'q' to exit the program.\n"
     abstand = min(disray)
-    tonhoehe = np.argmin(disray)
+    tonhoehe = np.argmin(disray)+instrument
     b = cv2.waitKey(12)
     #b = chr(b) #get the letter from the number returned by waitKey
     #if b=='q':
@@ -127,8 +129,8 @@ def readInputUntilRecognition(waiter):
         #redImage = bild[:,:,2]
         img = bild
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        ret,gray = cv2.threshold(gray,127,255,0)
-        gray2 = gray.copy()
+        ret,gray = cv2.threshold(gray,170,255,cv2.THRESH_BINARY)
+        #gray2 = gray.copy()
         mask = np.zeros(gray.shape,np.uint8)
 
         _, contours, hier = cv2.findContours(gray,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
@@ -136,7 +138,7 @@ def readInputUntilRecognition(waiter):
             #print len(contours[0])
         dis_array = []
         for cnt in contours:
-            if 180 < cv2.contourArea(cnt) < 380:
+            if 150 < cv2.contourArea(cnt) < 800:
                 cv2.drawContours(img,[cnt],0,(0,255,0),2)
                 #print("Abstand eines gefundenen Punktes vom oberen Bildschirmrand:")
                 #print cnt[:,:,0]
@@ -294,7 +296,9 @@ while(1):
     if cor:
         abstand,tonhoehe = drawDistanceToNearestLine(allCoords,cor)
         if abstand < 200:
-                #print "cor: "+str(cor)
+            if tonhoehe != tonhoehe_alt:
+                midiout.send_message([0x80+chan,tonhoehe,50])
+                midiout.send_message([0x90+chan, tonhoehe, 127])
             corY = int(cor[1])
             amp = int(127.*corY/height)
             print "amp: "+str(amp)
@@ -309,7 +313,9 @@ while(1):
                 #print "%.2f s" % (end-start)
                 #start = time.clock()
                 #midiout.send_message([0x90, tone, 127])
-                #tone_old = tone
+            tonhoehe_alt = tonhoehe
+        else:
+            midiout.send_message([0x80+chan,tonhoehe,50])
 
 
 
