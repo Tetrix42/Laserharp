@@ -9,7 +9,7 @@ import math
 import sys
 
 #---- CV2 command overview ---#
-#cap = cv2.VideoCapture(0)	# 0 for /dev/video0; 1 for /dev/video1; or a filename.
+#cap = cv2.VideoCapture(device)	# 0 for /dev/video0; 1 for /dev/video1; or a filename.
 #print("dimension", cap.get(3), cap.get(4)) #http://docs.opencv.org/modules/highgui/doc/reading_and_writing_images_and_video.html#videocapture-get
 #print("fps:", cap.get(5))
 #print("codec:", cap.get(6))
@@ -19,18 +19,20 @@ import sys
 #print("rgp:", cap.get(16))
 
 lasernumber = 2
-tone_old = 100;
+tone_old = 100
+device = 1
+dummy = 0
 
-cap = cv2.VideoCapture(1) # 0 for /dev/video0; 1 for /dev/video1; or a filename.
+cap = cv2.VideoCapture(device) # 0 for /dev/video0; 1 for /dev/video1; or a filename.
 ret, bild = cap.read()
 height = bild.shape[1]
-cap.release()
+#cap.release()
 cv2.waitKey(1)
 #cv2.destroyAllWindows()
 
 def drawCalibrationProgress(allCoords):
     #print allCoords
-    cap = cv2.VideoCapture(1) # 0 for /dev/video0; 1 for /dev/video1; or a filename.
+    #cap = cv2.VideoCapture(device) # 0 for /dev/video0; 1 for /dev/video1; or a filename.
     ret, bild = cap.read()
     for i in range(len(allCoords)):
         coord11 = int(allCoords[i][0][0])
@@ -61,7 +63,7 @@ def distanceOfLineAndPoint(coord11,coord12,coord21,coord22,cor1,cor2):
     disEndOfLineToPoint = math.sqrt((coord21-cor1)*(coord21-cor1)+(coord22-cor2)*(coord22-cor2))
     disBeginningOfLineToOrthogonalPoint = math.sqrt(disBeginningOfLineToPoint*disBeginningOfLineToPoint-dis*dis)
     ratio = disBeginningOfLineToOrthogonalPoint/linelength
-    print "ratio: "+str(ratio)
+    #print "ratio: "+str(ratio)
     compare = linelength*linelength-(disEndOfLineToPoint*disEndOfLineToPoint - dis*dis)
     if compare <= 0:
         if disBeginningOfLineToPoint < disEndOfLineToPoint: # These two conditions ensure that the point is nearer to the Beginning
@@ -76,8 +78,8 @@ def distanceOfLineAndPoint(coord11,coord12,coord21,coord22,cor1,cor2):
     disToPoint = math.sqrt((corOr1-cor1)*(corOr1-cor1)+(corOr2-cor2)*(corOr2-cor2))
     return disToPoint,corOr1,corOr2
 
-def drawDistanceToNearestLine(allCoords,cor,cap):
-    cap = VideoCapture(1)
+def drawDistanceToNearestLine(allCoords,cor):
+    #cap = cv2.VideoCapture(device)
     ret, bild = cap.read()
     cor1 = int(cor[0])
     cor2 = int(cor[1])
@@ -92,7 +94,7 @@ def drawDistanceToNearestLine(allCoords,cor,cap):
         # We now want to draw distance to newly detected point.
         # For that we use the distance formula defined above
         dis,corOr1,corOr2 = distanceOfLineAndPoint(coord11,coord12,coord21,coord22,cor1,cor2)
-        print "Distance "+str(i)+": "+str(dis)
+        #print "Distance "+str(i)+": "+str(dis)
         disray.append(dis)
         cv2.line(bild, (cor1,cor2),(corOr1,corOr2),(255,0,0),5)
     cv2.circle(bild, (cor1,cor2), 8, ( 0, 0, 255 ),-1, 8 ) # draw laserpointPosition
@@ -107,18 +109,19 @@ def drawDistanceToNearestLine(allCoords,cor,cap):
     #    sys.exit()
     return abstand,tonhoehe
 
-def readInputUntilRecognition(waiter,cap):
+def readInputUntilRecognition(waiter):
     #we want to create a mask and display the subtracted background
     #bild = cv2.imread("../material/bild.jpg")
     m=0 #declaration for later maximum distance of detected point
     positionOfElement = 0 #same thing
     #cap = cv2.VideoCapture('output1.avi')
-    cap = cv2.VideoCapture(1) # 0 for /dev/video0; 1 for /dev/video1; or a filename.
-    ret1, bild1 = cap.read()
-    height = bild1.shape[1]
+    #cap = cv2.VideoCapture(device) # 0 for for /dev/video1; or a filename.
+    #print cap
+    ret, bild = cap.read()
+    #print bild,ret
+    height = bild.shape[1]
     tone_old = 100;
     while(cap.isOpened()):
-        #print "HASDJASDJKABSDJASNDLKJASNDKLAJSBDLASJKDBASLJD"
         ret, bild = cap.read()
 
         #redImage = bild[:,:,2]
@@ -133,7 +136,7 @@ def readInputUntilRecognition(waiter,cap):
             #print len(contours[0])
         dis_array = []
         for cnt in contours:
-            if 100 < cv2.contourArea(cnt) < 230:
+            if 180 < cv2.contourArea(cnt) < 380:
                 cv2.drawContours(img,[cnt],0,(0,255,0),2)
                 #print("Abstand eines gefundenen Punktes vom oberen Bildschirmrand:")
                 #print cnt[:,:,0]
@@ -159,8 +162,8 @@ def readInputUntilRecognition(waiter,cap):
         #print len(dis_array)
         if len(dis_array)>=1:
             m = max(dis_array_y) # lowest point (largest distance to top of screen)
-            print "Position of lowest point:"
-            print m
+            #print "Position of lowest point:"
+            #print m
             positionOfElement = 0
             for i,j in enumerate(dis_array):
                 #print j
@@ -186,8 +189,9 @@ def readInputUntilRecognition(waiter,cap):
             #print detectedDot
             #cv2.drawContours(img,[detectedDot],0,(255,0,0),2) For cnt in countours etc... #to do next.
         else:
-            print "\nNo points detected! Please repeat with 'r'"
-        print '\nMake sure the blue dot is where the Laserpoint of your hand is. \n If this is not the case, You have to press "r" to REPEAT.\n Otherwise press "ENTER" if you are satisfied\n'
+            #print "\nNo points detected! Please repeat with 'r'"
+            dummy=0
+        #print '\nMake sure the blue dot is where the Laserpoint of your hand is. \n If this is not the case, You have to press "r" to REPEAT.\n Otherwise press "ENTER" if you are satisfied\n'
         #print 'Press "n" if you are satisfied, otherwise press "r" to repeat'
         cv2.imshow('frame',img)
         #cv2.startWindowThread()
@@ -202,7 +206,7 @@ def readInputUntilRecognition(waiter,cap):
         if b != 'r':
             # When everything is done, release the capture
             break
-    cap.release()
+    #cap.release()
     cv2.waitKey(1)
     #cv2.destroyAllWindows()
     cv2.waitKey(1)
@@ -241,7 +245,7 @@ print "on"
 time.sleep(1)
 print "off"
 midiout.send_message(note_off)
-print "did you hear a tone? there is a problem if you didn't."
+print "did you hear a tone? There is a problem if you didn't."
 #--------#
 
 
@@ -266,45 +270,46 @@ for i in range(lasernumber):
     anyKey = cv2.waitKey(0)
     if anyKey == 'q':
         sys.exit()
-    cor1 = readInputUntilRecognition(1,cap)
+    cor1 = readInputUntilRecognition(1)
     number = number+1
     print "Now please put your hand at position ("+str(number)+")"
-    cor2 = readInputUntilRecognition(1,cap)
+    cor2 = readInputUntilRecognition(1)
 
     allCoords.append([cor1,cor2])
-    drawCalibrationProgress(allCoords,cap) #draw lines and stuff next TODO, nparray and lines for coordinates cv2
+    drawCalibrationProgress(allCoords) #draw lines and stuff next TODO, nparray and lines for coordinates cv2
 
 #a = raw_input('Calibration finished.\n\nWe now detect the nearest distance of laserpoints to lines.\n')
 print 'Calibration finished.\n\nWe now detect the nearest distance of laserpoints to lines.\nPress "AnyKey" to proceed.\n'
 ak2 = cv2.waitKey(0)
 chan=1
 tone=62
+midiout.send_message([0xB0+chan, 07, 127]) # here absolute volume is set.
 midiout.send_message([0xC0+chan,19])
 midiout.send_message([0x90+chan, tone, 127])
 if ak2 == 'q':
     sys.exit()
 while(1):
-    cor = readInputUntilRecognition(0,cap)
-    print "Cor-Values: "+str(cor)
+    cor = readInputUntilRecognition(0)
+    #print "Cor-Values: "+str(cor)
     if cor:
-        abstand,tonhoehe = drawDistanceToNearestLine(allCoords,cor,cap)
+        abstand,tonhoehe = drawDistanceToNearestLine(allCoords,cor)
         if abstand < 200:
-            print "cor: "+str(cor)
+                #print "cor: "+str(cor)
             corY = int(cor[1])
             amp = int(127.*corY/height)
             print "amp: "+str(amp)
-            #tone = np.round(60+2*tonhoehe)
+                #tone = np.round(60+2*tonhoehe)
                 #(tones only have a scale from 0 to 255)
                 #print(tone)
-            midiout.send_message([0xB0+chan, 11, amp]) ## here absolute volume is set.
-            midiout.send_message([0xB0+chan, 07, amp]) ## here absolute volume is set.
-            #midiout.send_message([0x80, tone_old, 10])
+                #midiout.send_message([0xB0+chan, 11, amp]) # here relative volume is set.
+            midiout.send_message([0xB0+chan, 07, amp]) # here absolute volume is set.
+                #midiout.send_message([0x80, tone_old, 10])
                 #end = time.clock()
                 #print "%.2f Hz" % (1./(end-start))
                 #print "%.2f s" % (end-start)
                 #start = time.clock()
-            #midiout.send_message([0x90, tone, 127])
-            tone_old = tone
+                #midiout.send_message([0x90, tone, 127])
+                #tone_old = tone
 
 
 
