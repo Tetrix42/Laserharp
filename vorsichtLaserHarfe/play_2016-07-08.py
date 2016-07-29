@@ -98,13 +98,13 @@ def drawDistanceToNearestLine(allCoords,cor):
         dis,corOr1,corOr2 = distanceOfLineAndPoint(coord11,coord12,coord21,coord22,cor1,cor2)
         #print "Distance "+str(i)+": "+str(dis)
         disray.append(dis)
-        cv2.line(bild, (cor1,cor2),(corOr1,corOr2),(255,0,0),5)
+        #cv2.line(bild, (cor1,cor2),(corOr1,corOr2),(255,0,0),5)
     cv2.circle(bild, (cor1,cor2), 8, ( 0, 0, 255 ),-1, 8 ) # draw laserpointPosition
     cv2.imshow('frame',bild)
     #print "\nMinimum: "+str(min(disray))
     #print "\nOk, press 'AnyKey' to go on.\nPress 'q' to exit the program.\n"
     abstand = min(disray)
-    tonhoehe = np.argmin(disray)+instrument
+    tonhoehe = np.argmin(disray)*7+instrument
     b = cv2.waitKey(12)
     #b = chr(b) #get the letter from the number returned by waitKey
     #if b=='q':
@@ -129,7 +129,7 @@ def readInputUntilRecognition(waiter):
         #redImage = bild[:,:,2]
         img = bild
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        ret,gray = cv2.threshold(gray,170,255,cv2.THRESH_BINARY)
+        ret,gray = cv2.threshold(gray,190,255,cv2.THRESH_BINARY)
         #gray2 = gray.copy()
         mask = np.zeros(gray.shape,np.uint8)
 
@@ -138,7 +138,7 @@ def readInputUntilRecognition(waiter):
             #print len(contours[0])
         dis_array = []
         for cnt in contours:
-            if 150 < cv2.contourArea(cnt) < 800:
+            if 80 < cv2.contourArea(cnt) < 450:
                 cv2.drawContours(img,[cnt],0,(0,255,0),2)
                 #print("Abstand eines gefundenen Punktes vom oberen Bildschirmrand:")
                 #print cnt[:,:,0]
@@ -283,11 +283,12 @@ for i in range(lasernumber):
 #a = raw_input('Calibration finished.\n\nWe now detect the nearest distance of laserpoints to lines.\n')
 print 'Calibration finished.\n\nWe now detect the nearest distance of laserpoints to lines.\nPress "AnyKey" to proceed.\n'
 ak2 = cv2.waitKey(0)
-chan=1
-tone=62
+chan=0
+tone=61
+tonhoehe_alt = 0
 midiout.send_message([0xB0+chan, 07, 127]) # here absolute volume is set.
-midiout.send_message([0xC0+chan,19])
-midiout.send_message([0x90+chan, tone, 127])
+midiout.send_message([0xC0+chan,69])
+#idiout.send_message([0x90+chan, tone, 127])
 if ak2 == 'q':
     sys.exit()
 while(1):
@@ -297,25 +298,26 @@ while(1):
         abstand,tonhoehe = drawDistanceToNearestLine(allCoords,cor)
         if abstand < 200:
             if tonhoehe != tonhoehe_alt:
-                midiout.send_message([0x80+chan,tonhoehe,50])
-                midiout.send_message([0x90+chan, tonhoehe, 127])
+                print "tonhoehe alt:"
+                print tonhoehe_alt
+                print "tonhoehe neu:"
+                print tonhoehe
+                print "------"
+                midiout.send_message([0x80+chan,tonhoehe_alt,0])
+                midiout.send_message([0x90+chan, tonhoehe, 90])
+                tonhoehe_alt = tonhoehe
             corY = int(cor[1])
             amp = int(127.*corY/height)
-            print "amp: "+str(amp)
-                #tone = np.round(60+2*tonhoehe)
-                #(tones only have a scale from 0 to 255)
-                #print(tone)
-                #midiout.send_message([0xB0+chan, 11, amp]) # here relative volume is set.
             midiout.send_message([0xB0+chan, 07, amp]) # here absolute volume is set.
-                #midiout.send_message([0x80, tone_old, 10])
-                #end = time.clock()
-                #print "%.2f Hz" % (1./(end-start))
-                #print "%.2f s" % (end-start)
-                #start = time.clock()
-                #midiout.send_message([0x90, tone, 127])
+            #midiout.send_message([0x80+chan,tonhoehe_alt,54])
+            #midiout.send_message([0x90+chan, tonhoehe, 127])
             tonhoehe_alt = tonhoehe
         else:
-            midiout.send_message([0x80+chan,tonhoehe,50])
+            midiout.send_message([0x80+chan,tonhoehe,0])
+    else:
+        #midiout.send_message([0xB0+chan, 07, 0]) # here absolute volume is set.
+        midiout.send_message([0x80+chan,tonhoehe,0])
+        tonhoehe_alt = 0
 
 
 
