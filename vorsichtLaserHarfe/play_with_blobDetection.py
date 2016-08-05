@@ -11,8 +11,6 @@ import copy
 
 from music import music
 
-mc = music(2,0,60,True);
-mc.test();
 
 #---- CV2 command overview ---#
 #cap = cv2.VideoCapture(device)	# 0 for /dev/video0; 1 for /dev/video1; or a filename.
@@ -24,12 +22,17 @@ mc.test();
 #print("sat:", cap.get(12))
 #print("rgp:", cap.get(16))
 
-lasernumber = 2
+lasernumber = 5
 tone_old = 100
 tonhoehe_alt = 62
 device = 1
 dummy = 0
 instrument = 62
+instrument = 19
+
+
+mc = music(lasernumber ,0,60,True, instrument);
+mc.test();
 
 cap = cv2.VideoCapture(device) # 0 for /dev/video0; 1 for /dev/video1; or a filename.
 ret, bild = cap.read()
@@ -199,7 +202,6 @@ def readInputUntilRecognition(waiter):
         # Setup SimpleBlobDetector parameters.
         params = cv2.SimpleBlobDetector_Params()
         # Change thresholds
-        #params.filterByThreshold=True
         params.minThreshold = 100
         params.maxThreshold = 255
         # Filter by Area.
@@ -356,7 +358,7 @@ while(1):
 			beams[beam] = amp
 	
 	for i in range(lasernumber):
-		print(i, beams[i])
+		#print(i, beams[i])
 		mc.play(i, beams[i])
 		
 
