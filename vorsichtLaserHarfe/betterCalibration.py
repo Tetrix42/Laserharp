@@ -7,6 +7,10 @@ import time
 import scipy.misc
 import math
 import sys
+import copy
+
+from music import music
+
 
 #---- CV2 command overview ---#
 #cap = cv2.VideoCapture(device)	# 0 for /dev/video0; 1 for /dev/video1; or a filename.
@@ -18,12 +22,17 @@ import sys
 #print("sat:", cap.get(12))
 #print("rgp:", cap.get(16))
 
-lasernumber = 2
+lasernumber = 5
 tone_old = 100
 tonhoehe_alt = 62
-device = 0
+device = 1
 dummy = 0
 instrument = 62
+instrument = 19
+
+
+mc = music(lasernumber ,0,60,True, instrument);
+mc.test();
 
 cap = cv2.VideoCapture(device) # 0 for /dev/video0; 1 for /dev/video1; or a filename.
 ret, bild = cap.read()
@@ -78,18 +87,22 @@ def distanceOfLineAndPoint(coord11,coord12,coord21,coord22,cor1,cor2):
     disToPoint = math.sqrt((corOr1-cor1)*(corOr1-cor1)+(corOr2-cor2)*(corOr2-cor2))
     return disToPoint,corOr1,corOr2
 
-def drawDistanceToNearestLine(allCoords,cor):
-    #cap = cv2.VideoCapture(device)
-    ret, bild = cap.read()
+def drawDistanceToNearestLine(allCoords,cor, draw = True):
     cor1 = int(cor[0])
     cor2 = int(cor[1])
     disray = []
+    
+    if draw == True:
+		#cap = cv2.VideoCapture(device)
+		ret, bild = cap.read()
+    
     for i in range(len(allCoords)):
         coord11 = int(allCoords[i][0][0])
         coord12 = int(allCoords[i][0][1])
         coord21 = int(allCoords[i][1][0])
         coord22 = int(allCoords[i][1][1])
-        cv2.line(bild, (coord11,coord12),(coord21,coord22),(255,185,15),3)
+        if draw == True:
+			cv2.line(bild, (coord11,coord12),(coord21,coord22),(255,185,15),3)
         # The above line is the calibration line.
         # We now want to draw distance to newly detected point.
         # For that we use the distance formula defined above
@@ -97,16 +110,19 @@ def drawDistanceToNearestLine(allCoords,cor):
         #print "Distance "+str(i)+": "+str(dis)
         disray.append(dis)
         #cv2.line(bild, (cor1,cor2),(corOr1,corOr2),(255,0,0),5)
-    cv2.circle(bild, (cor1,cor2), 8, ( 0, 0, 255 ),-1, 8 ) # draw laserpointPosition
-    cv2.imshow('frame',bild)
     #print "\nMinimum: "+str(min(disray))
     abstand = min(disray)
-    tonhoehe = np.argmin(disray)*7+instrument
-    b = cv2.waitKey(6)
-    if b!=-1:
-        b = chr(b) #get the letter from the number returned by waitKey
-        if b=='c':
-            sys.exit()
+    #tonhoehe = np.argmin(disray)*7+instrument
+    tonhoehe = np.argmin(disray)
+    
+    if draw == True :
+		cv2.circle(bild, (cor1,cor2), 8, ( 0, 0, 255 ),-1, 8 ) # draw laserpointPosition
+		cv2.imshow('frame',bild)
+		b = cv2.waitKey(1)
+		if b!=-1:
+			b = chr(b) #get the letter from the number returned by waitKey
+			if b=='c':
+				sys.exit()
     return abstand,tonhoehe
 
 
@@ -167,55 +183,101 @@ def readInputUntilRecognition(waiter):
     ret, bild = cap.read()
     height = bild.shape[1]
     tone_old = 100
+    keypoints = 0;
     while(cap.isOpened()):
         ret, bild = cap.read()
 
+        #img = copy.deepcopy(bild)
         img = bild
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        gray2 = copy.deepcopy(gray)
         ret,gray = cv2.threshold(gray,threshold,255,cv2.THRESH_BINARY)
         mask = np.zeros(gray.shape,np.uint8)
-
-        _, contours, hier = cv2.findContours(gray,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-        dis_array = []
-        for cnt in contours:
-            if contourMin < cv2.contourArea(cnt) < contourMax:
-                cv2.drawContours(img,[cnt],0,(0,255,0),2)
-                distance_above = np.mean(cnt[:,:,1])
-                distance_fromLeft = np.mean(cnt[:,:,0])
-                dis_array.append([distance_fromLeft,distance_above])
-                cv2.drawContours(mask,[cnt],0,255,-1)
-        dis_array_y = []
-        for i in range(len(dis_array)):
-            dis_array_y.append(dis_array[i][1])
-        if len(dis_array)>=1:
-            m = max(dis_array_y) # lowest point (largest distance to top of screen)
-            positionOfElement = 0
-            for i,j in enumerate(dis_array):
-                if j[1] == m:
-                    positionOfElement = i
-                    break
-        for cnt in contours:
-            distance_above_2 = np.mean(cnt[:,:,1])
-            if distance_above_2 == m:
-                #Draw differently colored point
-                cv2.drawContours(img,[cnt],0,(255,0,0),2)
-                cv2.drawContours(mask,[cnt],0,255,-1)
-                break
+        #contours, hier = cv2.findContours(gray,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+        
+        gray2 = 255-gray2
+        #gray2 = 255-bild[:,:,2]
+        #cv2.imshow("frame", gray2)
+        
+        # Setup SimpleBlobDetector parameters.
+        params = cv2.SimpleBlobDetector_Params()
+        # Change thresholds
+        params.minThreshold = 100
+        params.maxThreshold = 255
+        # Filter by Area.
+        params.filterByArea = True
+        params.minArea = 30
+        # Filter by CircularitydrawDist
+        params.filterByCircularity = True
+        params.minCircularity = 0.5
+        # Filter by Convexity
+        params.filterByConvexity = True
+        params.minConvexity = 0.8
+        # Filter by Inertia
+        params.filterByInertia = True
+        params.minInertiaRatio = 0.01
+        
+        ver = (cv2.__version__).split('.')
+        if int(ver[0]) < 3 :
+            detector = cv2.SimpleBlobDetector(params)
+        else : 
+            detector = cv2.SimpleBlobDetector_create(params)
+            
+        keypoints = detector.detect(gray2)
+        im_with_keypoints = cv2.drawKeypoints(gray, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+        
+        for cnt in keypoints:
+            #print(cnt)
+            #print(cnt.pt)
+            cv2.circle( img, (int(cnt.pt[0]),int(cnt.pt[1])),  10, (0,255,0), thickness = 3, lineType=8 );
+            
         cv2.imshow('frame',img)
-        b = cv2.waitKey(7)
+        b = cv2.waitKey(1)
         if b!=-1:
             b = chr(b)
         if b=='c':
             sys.exit()
         if waiter==1:
-            if b!=-1:
-                threshold, contourMin, contourMax = tuneCalibration(b,threshold,contourMin,contourMax)
-            else:
-                b = 'r' #repeat loop if user did not enter anything
+            #if b!=-1:
+            #    threshold, contourMin, contourMax = tuneCalibration(b,threshold,contourMin,contourMax)
+            #else:
+            #    b = 'r' #repeat loop if user did not enter anything
+            if b == 'p':
+				# let user select 
+				selected = 0;
+				keymax = len(keypoints)
+				if keymax >=1: 
+					while (True):
+						for cnt in keypoints:
+							#print(cnt)
+							#print(cnt.pt)
+							cv2.circle( img, (int(cnt.pt[0]),int(cnt.pt[1])),  10, (0,255,0), thickness = 3, lineType=8 );
+						
+						cv2.circle( img, (int(keypoints[selected].pt[0]),int(keypoints[selected].pt[1])),  10, (0,0,225), thickness = 3, lineType=8 );
+						
+						cv2.imshow('frame',img)
+						w = cv2.waitKey(1)
+						#print w
+						if w!=-1:
+							w = chr(w)
+						if w == '1':
+							selected -= 1;
+							if selected < 0:
+								selected = 0;
+						if w == '2':
+							selected += 1;
+							if selected >= keymax:
+								selected = keymax-1;
+						if w == 'z':
+							return (keypoints[selected])
+						if w == 'c':
+							break
+            
+            
         else: #go on by default if harp is in play mode (if waiter==0)
             b = 'n'
         if b == 'n':
-            if len(dis_array) >= 1: #check if points were detected
+            if len(keypoints) >= 1: #check if points were detected
                 # If yes break loop to send data of points
                 break
             else:
@@ -223,33 +285,11 @@ def readInputUntilRecognition(waiter):
                     print "No points detected, try again."
                 else:
                     b='n'# don't do anything and repeat loop if no points where detected
-    return dis_array[positionOfElement]
+            break;
+        
+    #return dis_array[positionOfElement]
+    return keypoints
 
-#--------#
-#configure MIDI
-midiout = rtmidi.MidiOut()
-
-for port_name in midiout.ports:
-    print port_name
-
-if midiout.ports:
-#    midiout.open_virtual_port("My virtual output")
-    midiout.open_port(2)
-    print "Timidity music port test..."
-else:
-    midiout.open_virtual_port("My virtual output")
-
-time.sleep(0.1)
-
-note_on = [0x90, 60, 127] # channel 1, middle C, velocity 112
-note_off = [0x80, 60, 50]
-midiout.send_message(note_on)
-#print "on"
-time.sleep(1)
-#print "off"
-midiout.send_message(note_off)
-print "Did you hear a tone? There is a problem if you didn't."
-#--------#
 
 
 #-- Calibration start -#
@@ -258,8 +298,11 @@ print "\n\nCalibration started"
 allCoords = []
 number = 0
 
+beams = []
+
 for i in range(lasernumber):
     number = number+1
+    beams.append(0)
     print "\   \      |      /   /"
     print "(1) (3)   (5)   (7) (9)"
     print "  \   \    |    /   /  "
@@ -275,10 +318,12 @@ for i in range(lasernumber):
         print "Contour-Max: "+str(contourMax)
     print "\nNow put your hand at position ("+str(number)+") and press 'n' when you want to mark for calibration."
 
-    cor1 = readInputUntilRecognition(1)
+    key1 = readInputUntilRecognition(1)
+    cor1 = [key1.pt[0], key1.pt[1]]
     number = number+1
     print "Now please put your hand at position ("+str(number)+")"
-    cor2 = readInputUntilRecognition(1)
+    key2 = readInputUntilRecognition(1)
+    cor2 = [key2.pt[0], key2.pt[1]]
 
     allCoords.append([cor1,cor2])
     drawCalibrationProgress(allCoords) #draw lines and stuff next TODO, nparray and lines for coordinates cv2
@@ -288,34 +333,34 @@ print 'Calibration finished.\n\nYou can now start to play the Harp!\nPress "AnyK
 ak2 = cv2.waitKey(0)
 chan=0
 tone=61
-tonhoehe_alt = 0
-midiout.send_message([0xB0+chan, 07, 127]) # here absolute volume is set.
-midiout.send_message([0xC0+chan,69])
+
 while(1):
-    ak = cv2.waitKey(2)
-    if ak != -1:
-        ak = chr(ak)
-        if ak == 'c':
-            sys.exit()
-    cor = readInputUntilRecognition(0)
-    if cor:
-        abstand,tonhoehe = drawDistanceToNearestLine(allCoords,cor)
-        if abstand < 200:
-            if tonhoehe != tonhoehe_alt:
-                midiout.send_message([0x80+chan,tonhoehe_alt,0])
-                midiout.send_message([0x90+chan, tonhoehe, 90])
-                tonhoehe_alt = tonhoehe
-            corY = int(cor[1])
-            amp = int(127.*corY/height)+20
-            if amp > 127:
-                amp = 127
-            midiout.send_message([0xB0+chan, 07, amp]) # here absolute volume is set.
-            tonhoehe_alt = tonhoehe
-        else:
-            midiout.send_message([0x80+chan,tonhoehe,0])
-    else:
-        midiout.send_message([0x80+chan,tonhoehe,0])
-        tonhoehe_alt = 0
+	ak = cv2.waitKey(1)
+	if ak != -1:
+		ak = chr(ak)
+		if ak == 'c':
+			sys.exit()
+	keylist = readInputUntilRecognition(0)
+	
+	for i in range(lasernumber):
+		beams[i] = 0;
+	
+	for key in keylist:
+		cor = [key.pt[0], key.pt[1]]
+		abstand,beam = drawDistanceToNearestLine(allCoords,cor, False)
+		
+		if abstand < 10:
+			#print(beam, abstand)
+			corY = int(cor[1])
+			amp = int(127.*corY/height)+20
+			if amp > 127:
+				amp = 127
+			beams[beam] = amp
+	
+	for i in range(lasernumber):
+		#print(i, beams[i])
+		mc.play(i, beams[i])
+		
 
 
 
